@@ -22,6 +22,11 @@ export const emailService = {
 
     try {
       const subject = `Your Verification Code: ${otpCode}`;
+      const digits = otpCode.split('');
+      const digitsHtml = digits.map(d => `
+        <td style="width: 46px; height: 50px; text-align: center; font-size: 24px; font-weight: 800; color: #0F172A; background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; margin: 0 4px; display: inline-block; line-height: 50px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);">${d}</td>
+      `).join('');
+
       const htmlContent = `
         <div style="display: none; max-height: 0px; overflow: hidden; font-size: 1px; color: #FFF; line-height: 1px;">
           Secure One-Time Password (OTP) validation key for your QR Code Official activation: ${otpCode}. Dispatched securely by the system admin.
@@ -51,9 +56,13 @@ export const emailService = {
               Thank you for registering. Please enter the following 6-digit verification code to complete your security registration and unlock your dynamic vectors:
             </p>
 
-            <!-- Code Block (Premium Dark Slate Card) -->
-            <div style="background-color: #0F172A; border-radius: 14px; padding: 24px; text-align: center; margin-bottom: 32px; box-shadow: 0 4px 12px rgba(15,23,42,0.15);">
-              <span style="font-family: 'Courier New', Courier, monospace; font-size: 38px; font-weight: 800; color: #38BDF8; letter-spacing: 12px; padding-left: 12px; display: inline-block;">${otpCode}</span>
+            <!-- Code Block (Premium Styled Digit Cards) -->
+            <div style="text-align: center; margin: 32px 0;">
+              <table style="margin: 0 auto; border-collapse: collapse;">
+                <tr>
+                  ${digitsHtml}
+                </tr>
+              </table>
             </div>
 
             <p style="color: #64748B; font-size: 13px; line-height: 1.5; margin: 0 0 32px 0;">
