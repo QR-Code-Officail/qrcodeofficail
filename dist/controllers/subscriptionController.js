@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.simulateGracePeriod = exports.simulateExpiry = exports.verifyPurchase = exports.getSubscriptionStatus = void 0;
+exports.buyStaticCredit = exports.simulateGracePeriod = exports.simulateExpiry = exports.verifyPurchase = exports.getSubscriptionStatus = void 0;
 const Subscription_1 = require("../models/Subscription");
 const QRCode_1 = require("../models/QRCode");
 const billingService_1 = require("../services/billingService");
@@ -139,3 +139,20 @@ const simulateGracePeriod = async (req, res) => {
     }
 };
 exports.simulateGracePeriod = simulateGracePeriod;
+const buyStaticCredit = async (req, res) => {
+    try {
+        const user = req.user;
+        // Add 1 static credit
+        user.staticCredits = (user.staticCredits ?? 0) + 1;
+        await user.save();
+        return res.status(200).json({
+            message: 'Static QR Credit purchased successfully.',
+            staticCredits: user.staticCredits,
+        });
+    }
+    catch (error) {
+        console.error('Error buying static credit:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+};
+exports.buyStaticCredit = buyStaticCredit;

@@ -3,12 +3,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.refreshToken = exports.resendOtp = exports.login = exports.verifyOtp = exports.register = void 0;
+exports.getProfile = exports.updateAvatar = exports.refreshToken = exports.resendOtp = exports.login = exports.verifyOtp = exports.register = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const User_1 = require("../models/User");
 const Subscription_1 = require("../models/Subscription");
 const emailService_1 = require("../services/emailService");
+const storageService_1 = require("../services/storageService");
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const JWT_SECRET = process.env.JWT_SECRET || 'qr_code_platform_jwt_secret_key_2026_xyz';
@@ -146,6 +147,7 @@ const verifyOtp = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                avatarUrl: user.avatarUrl,
             },
             ...tokens,
         });
@@ -193,6 +195,7 @@ const login = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                avatarUrl: user.avatarUrl,
             },
             ...tokens,
         });
@@ -251,3 +254,63 @@ const refreshToken = async (req, res) => {
     }
 };
 exports.refreshToken = refreshToken;
+const updateAvatar = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        // Primary path: multipart file upload via multer
+        let imageData = null;
+        if (req.file) {
+            // Convert buffer to base64 data URI
+            const mimeType = req.file.mimetype || 'image/jpeg';
+            imageData = `data:${mimeType};base64,${req.file.buffer.toString('base64')}`;
+        }
+        else if (req.body?.avatarBase64) {
+            // Fallback: old base64 JSON body
+            imageData = req.body.avatarBase64;
+        }
+        if (!imageData) {
+            return res.status(400).json({ error: 'Avatar image file or base64 data is required.' });
+        }
+        const user = await User_1.User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found.' });
+        }
+        // Upload via Storage Service (Cloudinary → local fallback)
+        const uploadedUrl = await storageService_1.storageService.uploadAsset(imageData, 'avatars');
+        user.avatarUrl = uploadedUrl;
+        await user.save();
+        return res.status(200).json({
+            message: 'Avatar updated successfully.',
+            avatarUrl: uploadedUrl
+        });
+    }
+    catch (error) {
+        console.error('Error updating avatar:', error);
+        return res.status(500).json({ error: error.message || 'Internal server error' });
+    }
+};
+exports.updateAvatar = updateAvatar;
+const getProfile = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const user = await User_1.User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found.' });
+        }
+        return res.status(200).json({
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                avatarUrl: user.avatarUrl,
+                staticCredits: user.staticCredits,
+            }
+        });
+    }
+    catch (error) {
+        console.error('Error fetching profile:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+};
+exports.getProfile = getProfile;

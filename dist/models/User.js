@@ -9,6 +9,8 @@ const UserSchema = new mongoose_1.Schema({
     country: { type: String },
     passwordHash: { type: String, required: true },
     isEmailVerified: { type: Boolean, default: false },
+    avatarUrl: { type: String },
+    staticCredits: { type: Number, default: 0 },
     otp: {
         code: { type: String },
         expiresAt: { type: Date },

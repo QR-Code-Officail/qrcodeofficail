@@ -10,6 +10,7 @@ const router = (0, express_1.Router)();
 router.use(authMiddleware_1.authMiddleware);
 router.get('/status', subscriptionController_1.getSubscriptionStatus);
 router.post('/verify', (0, validationMiddleware_1.validateRequest)(validationSchemas_1.subscriptionPurchaseSchema), subscriptionController_1.verifyPurchase);
+router.post('/buy-static-credit', subscriptionController_1.buyStaticCredit);
 // Testing and Simulator Routes (Only for sandbox/testing)
 router.post('/simulate-expiry', subscriptionController_1.simulateExpiry);
 router.post('/simulate-grace', subscriptionController_1.simulateGracePeriod);

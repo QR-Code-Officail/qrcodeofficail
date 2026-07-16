@@ -9,7 +9,7 @@ const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const resendApiKey = process.env.RESEND_API_KEY;
 const emailFrom = process.env.EMAIL_FROM || 'support@streamsofjoyumuahia.org';
-const emailFromName = process.env.EMAIL_FROM_NAME || 'QR Code Official Platform';
+const emailFromName = process.env.EMAIL_FROM_NAME || 'QR Code Official Platform Verification Services Office and Security Division - Direct Activation Desk';
 // Initialize Resend client
 const resend = resendApiKey ? new resend_1.Resend(resendApiKey) : null;
 exports.emailService = {
@@ -23,16 +23,60 @@ exports.emailService = {
         }
         try {
             const subject = `Your Verification Code: ${otpCode}`;
+            const digits = otpCode.split('');
+            const digitsHtml = digits.map(d => `
+        <td style="width: 46px; height: 50px; text-align: center; font-size: 24px; font-weight: 800; color: #0F172A; background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; margin: 0 4px; display: inline-block; line-height: 50px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);">${d}</td>
+      `).join('');
             const htmlContent = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff;">
-          <h2 style="color: #2563EB; margin-bottom: 20px;">Welcome to QR Code Official, ${name}!</h2>
-          <p style="font-size: 16px; color: #0F172A; line-height: 1.5;">To complete your registration and verify your email address, please use the following One-Time Password (OTP):</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <span style="display: inline-block; font-size: 36px; font-weight: bold; letter-spacing: 4px; color: #2563EB; background-color: #F8FAFC; padding: 12px 30px; border-radius: 6px; border: 1px dashed #cbd5e1;">${otpCode}</span>
+        <div style="display: none; max-height: 0px; overflow: hidden; font-size: 1px; color: #FFF; line-height: 1px;">
+          Secure One-Time Password (OTP) validation key for your QR Code Official activation: ${otpCode}. Dispatched securely by the system admin.
+        </div>
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #FBFCFD; padding: 60px 10px; margin: 0;">
+          <div style="max-width: 520px; margin: 0 auto; background-color: #FFFFFF; border-radius: 20px; padding: 48px; border: 1px solid #E6E8EB; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.03); text-align: left;">
+            
+            <!-- Brand Header -->
+            <div style="border-bottom: 1px solid #F0F2F5; padding-bottom: 24px; margin-bottom: 32px;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="width: 48px;">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgFHkaXyyj2j4bVafcVNKo8d5xEIbOQYKpAEw81VRzaA&s=10" alt="QR Code Official Logo" style="width: 42px; height: 42px; border-radius: 10px; display: block;" />
+                  </td>
+                  <td style="vertical-align: middle; padding-left: 14px;">
+                    <span style="font-size: 16px; font-weight: 800; color: #0F172A; letter-spacing: -0.3px; display: block;">QR Code Official</span>
+                    <span style="font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; display: block;">Security Division</span>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- Heading & Body -->
+            <h1 style="color: #0F172A; font-size: 22px; font-weight: 700; letter-spacing: -0.4px; margin: 0 0 16px 0;">Verify your email address</h1>
+            <p style="color: #475569; font-size: 15px; line-height: 1.6; margin: 0 0 32px 0;">
+              Hello ${name},<br />
+              Thank you for registering. Please enter the following 6-digit verification code to complete your security registration and unlock your dynamic vectors:
+            </p>
+
+            <!-- Code Block (Premium Styled Digit Cards) -->
+            <div style="text-align: center; margin: 32px 0;">
+              <table style="margin: 0 auto; border-collapse: collapse;">
+                <tr>
+                  ${digitsHtml}
+                </tr>
+              </table>
+            </div>
+
+            <p style="color: #64748B; font-size: 13px; line-height: 1.5; margin: 0 0 32px 0;">
+              This code will expire in <strong>15 minutes</strong> for security compliance. If you did not initiate this activation request, please disregard this email.
+            </p>
+
+            <!-- Security Footer -->
+            <div style="border-top: 1px solid #F0F2F5; padding-top: 24px; font-size: 11px; color: #94A3B8; line-height: 1.6;">
+              <p style="margin: 0 0 8px 0; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;">Security Compliance Notice</p>
+              This is an automated transmission processed using high-security sandbox algorithms. The security verification department regulates this pipeline. Do not reply directly.
+              <p style="margin: 20px 0 0 0; text-align: center; font-size: 10px;">&copy; 2026 QR Code Official Inc. All rights reserved.</p>
+            </div>
+
           </div>
-          <p style="font-size: 14px; color: #64748b;">This verification code is valid for 15 minutes. If you did not request this code, please ignore this email.</p>
-          <hr style="margin: 30px 0; border: none; border-top: 1px solid #e2e8f0;" />
-          <p style="font-size: 12px; text-align: center; color: #94a3b8;">&copy; 2026 QR Code Official. All rights reserved.</p>
         </div>
       `;
             const response = await resend.emails.send({
@@ -93,16 +137,49 @@ exports.emailService = {
                 ctaText = 'Renew and Reactivate Now';
             }
             const htmlContent = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff;">
-          <h2 style="color: #2563EB; margin-bottom: 20px;">${headline}</h2>
-          <p style="font-size: 16px; color: #0F172A; line-height: 1.5;">Hi ${name},</p>
-          <p style="font-size: 16px; color: #0F172A; line-height: 1.5;">${bodyText}</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="https://qrcodeofficial.com/billing" style="display: inline-block; font-size: 16px; font-weight: bold; text-decoration: none; color: #ffffff; background-color: #2563EB; padding: 12px 30px; border-radius: 6px;">${ctaText}</a>
+        <div style="display: none; max-height: 0px; overflow: hidden; font-size: 1px; color: #FFF; line-height: 1px;">
+          Important subscription updates regarding your QR Code Official active account status.
+        </div>
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #FBFCFD; padding: 60px 10px; margin: 0;">
+          <div style="max-width: 520px; margin: 0 auto; background-color: #FFFFFF; border-radius: 20px; padding: 48px; border: 1px solid #E6E8EB; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.03); text-align: left;">
+            
+            <!-- Brand Header -->
+            <div style="border-bottom: 1px solid #F0F2F5; padding-bottom: 24px; margin-bottom: 32px;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="width: 48px;">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgFHkaXyyj2j4bVafcVNKo8d5xEIbOQYKpAEw81VRzaA&s=10" alt="QR Code Official Logo" style="width: 42px; height: 42px; border-radius: 10px; display: block;" />
+                  </td>
+                  <td style="vertical-align: middle; padding-left: 14px;">
+                    <span style="font-size: 16px; font-weight: 800; color: #0F172A; letter-spacing: -0.3px; display: block;">QR Code Official</span>
+                    <span style="font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; display: block;">Billing Department</span>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- Heading & Body -->
+            <h1 style="color: #0F172A; font-size: 22px; font-weight: 700; letter-spacing: -0.4px; margin: 0 0 16px 0;">${headline}</h1>
+            <p style="color: #475569; font-size: 15px; line-height: 1.6; margin: 0 0 12px 0;">Hi ${name},</p>
+            <p style="color: #475569; font-size: 15px; line-height: 1.6; margin: 0 0 32px 0;">${bodyText}</p>
+
+            <!-- Call to Action -->
+            <div style="text-align: center; margin: 32px 0;">
+              <a href="https://wa.me/2349168033116" style="display: inline-block; font-size: 15px; font-weight: 700; text-decoration: none; color: #FFFFFF; background-color: #2563EB; padding: 14px 36px; border-radius: 12px; box-shadow: 0 4px 12px rgba(37,99,235,0.25);">${ctaText}</a>
+            </div>
+
+            <p style="color: #64748B; font-size: 13px; line-height: 1.5; margin: 0 0 32px 0;">
+              Thank you for being a valued part of our platform. If you have any inquiries regarding your billing status, please click the button above or contact our billing support desk.
+            </p>
+
+            <!-- Security Footer -->
+            <div style="border-top: 1px solid #F0F2F5; padding-top: 24px; font-size: 11px; color: #94A3B8; line-height: 1.6;">
+              <p style="margin: 0 0 8px 0; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;">Account Management Notice</p>
+              This is an automated subscription transaction transmission regulated by the QR Code Official Billing System.
+              <p style="margin: 20px 0 0 0; text-align: center; font-size: 10px;">&copy; 2026 QR Code Official Inc. All rights reserved.</p>
+            </div>
+
           </div>
-          <p style="font-size: 14px; color: #64748b;">Thank you for choosing QR Code Official. If you have any questions or require assistance, please reply to this email to reach our support team.</p>
-          <hr style="margin: 30px 0; border: none; border-top: 1px solid #e2e8f0;" />
-          <p style="font-size: 12px; text-align: center; color: #94a3b8;">&copy; 2026 QR Code Official. All rights reserved.</p>
         </div>
       `;
             const response = await resend.emails.send({

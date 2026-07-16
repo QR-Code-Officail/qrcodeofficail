@@ -103,7 +103,7 @@ async function runTests() {
         console.log(`Logged scan for QR code ${qr._id} from ${scan.country} (${scan.browser}/${scan.os})`);
         // 8. Test Google Play verification sandbox
         console.log('\nTesting Billing Service verification...');
-        const billingResult = await billingService_1.billingService.verifySubscription('com.qrcode.official', 'professional_monthly_subscription', 'sandbox_token_pro_999');
+        const billingResult = await billingService_1.billingService.verifySubscription('com.qrcodeofficial.mobile', 'professional_monthly_subscription', 'sandbox_token_pro_999');
         console.log(`Billing validation result:`, billingResult);
         console.log('\n--- Integration Tests Completed Successfully! ---');
     }
