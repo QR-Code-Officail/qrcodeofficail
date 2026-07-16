@@ -15,9 +15,11 @@ const generateRedirectCode = (): string => {
 };
 
 // Check user's QR creation limits based on their subscription
-const checkQrCodeLimit = async (userId: string) => {
+const checkQrCodeLimit = async (userId: string, type: string) => {
+  if (type === 'static') return; // Static is paid per QR, bypass limits!
+
   const subscription = await Subscription.findOne({ userId });
-  const count = await QRCode.countDocuments({ userId, status: { $ne: 'deleted' } });
+  const count = await QRCode.countDocuments({ userId, type: 'dynamic', status: { $ne: 'deleted' } });
 
   if (!subscription) {
     // Default fallback limits (Guest or expired trial)
@@ -49,15 +51,27 @@ const checkQrCodeLimit = async (userId: string) => {
 export const createQRCode = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user!._id;
+    const { name, type, dataType, content, style } = req.body;
 
     // Check plan limits
     try {
-      await checkQrCodeLimit(userId.toString());
+      await checkQrCodeLimit(userId.toString(), type);
     } catch (limitErr: any) {
       return res.status(403).json({ error: limitErr.message });
     }
 
-    const { name, type, dataType, content, style } = req.body;
+    if (type === 'static') {
+      const user = req.user!;
+      if ((user.staticCredits ?? 0) <= 0) {
+        return res.status(403).json({
+          error: 'You need 1 Static QR Credit to generate a Static QR Code. Please purchase a credit.',
+          code: 'NO_STATIC_CREDITS'
+        });
+      }
+      // Decrement credit
+      user.staticCredits -= 1;
+      await user.save();
+    }
 
     let redirectCode: string | undefined = undefined;
     if (type === 'dynamic') {

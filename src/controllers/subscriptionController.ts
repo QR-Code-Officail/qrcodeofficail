@@ -166,3 +166,20 @@ export const simulateGracePeriod = async (req: AuthenticatedRequest, res: Respon
     return res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+export const buyStaticCredit = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const user = req.user!;
+    // Add 1 static credit
+    user.staticCredits = (user.staticCredits ?? 0) + 1;
+    await user.save();
+
+    return res.status(200).json({
+      message: 'Static QR Credit purchased successfully.',
+      staticCredits: user.staticCredits,
+    });
+  } catch (error) {
+    console.error('Error buying static credit:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
