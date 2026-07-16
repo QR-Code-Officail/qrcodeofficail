@@ -312,3 +312,27 @@ export const updateAvatar = async (req: AuthenticatedRequest, res: Response) => 
     return res.status(500).json({ error: error.message || 'Internal server error' });
   }
 };
+
+export const getProfile = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user!._id;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    return res.status(200).json({
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatarUrl: user.avatarUrl,
+        staticCredits: user.staticCredits,
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching profile:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};

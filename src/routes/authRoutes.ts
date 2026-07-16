@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { register, verifyOtp, login, resendOtp, refreshToken, updateAvatar } from '../controllers/authController';
+import { register, verifyOtp, login, resendOtp, refreshToken, updateAvatar, getProfile } from '../controllers/authController';
 import { validateRequest } from '../middleware/validationMiddleware';
 import { registerSchema, loginSchema, verifyOtpSchema } from '../utils/validationSchemas';
 import { authMiddleware } from '../middleware/authMiddleware';
@@ -14,5 +14,6 @@ router.post('/refresh-token', refreshToken);
 
 // Protected routes
 router.put('/profile/avatar', authMiddleware, updateAvatar);
+router.get('/profile/me', authMiddleware, getProfile);
 
 export default router;
