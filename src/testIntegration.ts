@@ -114,7 +114,7 @@ async function runTests() {
     // 8. Test Google Play verification sandbox
     console.log('\nTesting Billing Service verification...');
     const billingResult = await billingService.verifySubscription(
-      'com.qrcode.official',
+      'com.qrcodeofficial.mobile',
       'professional_monthly_subscription',
       'sandbox_token_pro_999'
     );

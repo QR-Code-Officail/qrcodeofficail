@@ -7,6 +7,7 @@ export interface IUser extends Document {
   country?: string;
   passwordHash: string;
   isEmailVerified: boolean;
+  avatarUrl?: string;
   otp?: {
     code: string;
     expiresAt: Date;
@@ -24,6 +25,7 @@ const UserSchema = new Schema<IUser>(
     country: { type: String },
     passwordHash: { type: String, required: true },
     isEmailVerified: { type: Boolean, default: false },
+    avatarUrl: { type: String },
     otp: {
       code: { type: String },
       expiresAt: { type: Date },

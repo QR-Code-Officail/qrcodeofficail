@@ -4,6 +4,8 @@ import jwt from 'jsonwebtoken';
 import { User } from '../models/User';
 import { Subscription } from '../models/Subscription';
 import { emailService } from '../services/emailService';
+import { AuthenticatedRequest } from '../middleware/authMiddleware';
+import { storageService } from '../services/storageService';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -164,6 +166,7 @@ export const verifyOtp = async (req: Request, res: Response) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        avatarUrl: user.avatarUrl,
       },
       ...tokens,
     });
@@ -217,6 +220,7 @@ export const login = async (req: Request, res: Response) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        avatarUrl: user.avatarUrl,
       },
       ...tokens,
     });
@@ -276,5 +280,35 @@ export const refreshToken = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error refreshing token:', error);
     return res.status(401).json({ error: 'Refresh token has expired or is invalid.' });
+  }
+};
+
+export const updateAvatar = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user!._id;
+    const { avatarBase64 } = req.body;
+
+    if (!avatarBase64) {
+      return res.status(400).json({ error: 'Avatar base64 image data is required.' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    // Upload to Cloudinary via Storage Service
+    const uploadedUrl = await storageService.uploadAsset(avatarBase64, 'avatars');
+
+    user.avatarUrl = uploadedUrl;
+    await user.save();
+
+    return res.status(200).json({ 
+      message: 'Avatar updated successfully.',
+      avatarUrl: uploadedUrl 
+    });
+  } catch (error: any) {
+    console.error('Error updating avatar:', error);
+    return res.status(500).json({ error: error.message || 'Internal server error' });
   }
 };
