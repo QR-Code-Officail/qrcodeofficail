@@ -56,28 +56,51 @@ export const billingService = {
       const { google } = require('googleapis');
       const path = require('path');
 
+      // Primary: read credentials from JSON env variable (works on Render/cloud)
+      // Fallback: read from a local key file path (local development)
+      let authConfig: any;
+
+      const serviceAccountJson = process.env.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON;
       const keyPath = process.env.GOOGLE_PLAY_SERVICE_ACCOUNT_KEY_PATH;
-      if (!keyPath) {
+
+      if (serviceAccountJson) {
+        try {
+          const credentials = JSON.parse(serviceAccountJson);
+          authConfig = {
+            credentials,
+            scopes: ['https://www.googleapis.com/auth/androidpublisher'],
+          };
+        } catch {
+          return {
+            isValid: false,
+            purchaseState: 1,
+            currentPeriodStart: new Date(),
+            currentPeriodEnd: new Date(),
+            autoRenewing: false,
+            error: 'GOOGLE_PLAY_SERVICE_ACCOUNT_JSON is set but contains invalid JSON.',
+          };
+        }
+      } else if (keyPath) {
+        const resolvedKeyPath = path.isAbsolute(keyPath)
+          ? keyPath
+          : path.resolve(process.cwd(), keyPath);
+        authConfig = {
+          keyFile: resolvedKeyPath,
+          scopes: ['https://www.googleapis.com/auth/androidpublisher'],
+        };
+      } else {
         return {
           isValid: false,
           purchaseState: 1,
           currentPeriodStart: new Date(),
           currentPeriodEnd: new Date(),
           autoRenewing: false,
-          error: 'Google Play Service Account Key Path is missing in environment configuration.',
+          error: 'No Google Play service account credentials configured.',
         };
       }
 
-      // Resolve key path relative to backend root
-      const resolvedKeyPath = path.isAbsolute(keyPath) 
-        ? keyPath 
-        : path.resolve(process.cwd(), keyPath);
-
       // Authenticate with Google APIs
-      const auth = new google.auth.GoogleAuth({
-        keyFile: resolvedKeyPath,
-        scopes: ['https://www.googleapis.com/auth/androidpublisher'],
-      });
+      const auth = new google.auth.GoogleAuth(authConfig);
 
       const play = google.androidpublisher({
         version: 'v3',
