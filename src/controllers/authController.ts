@@ -286,10 +286,21 @@ export const refreshToken = async (req: Request, res: Response) => {
 export const updateAvatar = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user!._id;
-    const { avatarBase64 } = req.body;
 
-    if (!avatarBase64) {
-      return res.status(400).json({ error: 'Avatar base64 image data is required.' });
+    // Primary path: multipart file upload via multer
+    let imageData: string | null = null;
+
+    if (req.file) {
+      // Convert buffer to base64 data URI
+      const mimeType = req.file.mimetype || 'image/jpeg';
+      imageData = `data:${mimeType};base64,${req.file.buffer.toString('base64')}`;
+    } else if (req.body?.avatarBase64) {
+      // Fallback: old base64 JSON body
+      imageData = req.body.avatarBase64;
+    }
+
+    if (!imageData) {
+      return res.status(400).json({ error: 'Avatar image file or base64 data is required.' });
     }
 
     const user = await User.findById(userId);
@@ -297,8 +308,8 @@ export const updateAvatar = async (req: AuthenticatedRequest, res: Response) => 
       return res.status(404).json({ error: 'User not found.' });
     }
 
-    // Upload to Cloudinary via Storage Service
-    const uploadedUrl = await storageService.uploadAsset(avatarBase64, 'avatars');
+    // Upload via Storage Service (Cloudinary → local fallback)
+    const uploadedUrl = await storageService.uploadAsset(imageData, 'avatars');
 
     user.avatarUrl = uploadedUrl;
     await user.save();
