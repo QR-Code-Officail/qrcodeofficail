@@ -2,7 +2,15 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+// Set BYPASS_GOOGLE_PLAY_BILLING_VERIFICATION=true in .env for local/sandbox testing only.
+// In production on Render, set this to false and provide GOOGLE_PLAY_SERVICE_ACCOUNT_JSON instead.
 const bypassVerification = process.env.BYPASS_GOOGLE_PLAY_BILLING_VERIFICATION === 'true';
+
+if (bypassVerification) {
+  console.warn('[BillingService] ⚠️  BYPASS mode is ON — real Google Play verification is SKIPPED. Do NOT use in production.');
+} else {
+  console.log('[BillingService] ✅  Live Google Play verification is enabled.');
+}
 
 export interface IPlayStorePurchase {
   packageName: string;
@@ -31,8 +39,9 @@ export const billingService = {
   }> {
     console.log(`Verifying subscription for package: ${packageName}, product: ${subscriptionId}, token: ${purchaseToken}`);
 
-    // If sandbox/bypass is active, return a simulated successful verification
-    if (bypassVerification || purchaseToken.startsWith('sandbox_token_')) {
+    // If bypass is active (local/sandbox testing), return a simulated successful verification
+    if (bypassVerification) {
+      console.log('[BillingService] Bypass active — returning simulated successful verification for:', subscriptionId);
       const now = new Date();
       let durationMs = 30 * 24 * 60 * 60 * 1000; // 30 days default (monthly)
       
