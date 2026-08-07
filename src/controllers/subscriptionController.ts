@@ -170,7 +170,29 @@ export const simulateGracePeriod = async (req: AuthenticatedRequest, res: Respon
 export const buyStaticCredit = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const user = req.user!;
-    // Add 1 static credit
+    const { packageName, productId, purchaseToken } = req.body;
+
+    const bypassMode = process.env.BYPASS_GOOGLE_PLAY_BILLING_VERIFICATION === 'true';
+
+    // In production: verify the real purchaseToken from Google Play before granting credit
+    if (!bypassMode) {
+      if (!purchaseToken || !productId || !packageName) {
+        return res.status(400).json({
+          error: 'packageName, productId, and purchaseToken are required for credit purchase.',
+        });
+      }
+
+      const { billingService } = await import('../services/billingService');
+      const result = await billingService.verifyOneTimeProduct(packageName, productId, purchaseToken);
+
+      if (!result.isValid) {
+        return res.status(402).json({
+          error: result.error || 'Google Play could not verify this purchase. Credit not granted.',
+        });
+      }
+    }
+
+    // Grant 1 static credit
     user.staticCredits = (user.staticCredits ?? 0) + 1;
     await user.save();
 

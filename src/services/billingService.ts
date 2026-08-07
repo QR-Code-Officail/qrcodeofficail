@@ -151,4 +151,70 @@ export const billingService = {
       };
     }
   },
+
+  /**
+   * Verifies a one-time in-app product purchase (e.g., static QR credit).
+   * Uses purchases.products.get instead of purchases.subscriptions.get.
+   */
+  async verifyOneTimeProduct(
+    packageName: string,
+    productId: string,
+    purchaseToken: string
+  ): Promise<{ isValid: boolean; purchaseState: number; error?: string }> {
+    console.log(`Verifying one-time product: ${productId}, token: ${purchaseToken}`);
+
+    if (bypassVerification) {
+      console.log('[BillingService] Bypass active — accepting one-time product purchase.');
+      return { isValid: true, purchaseState: 0 };
+    }
+
+    try {
+      const { google } = require('googleapis');
+      const path = require('path');
+
+      let authConfig: any;
+      const serviceAccountJson = process.env.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON;
+      const keyPath = process.env.GOOGLE_PLAY_SERVICE_ACCOUNT_KEY_PATH;
+
+      if (serviceAccountJson) {
+        authConfig = {
+          credentials: JSON.parse(serviceAccountJson),
+          scopes: ['https://www.googleapis.com/auth/androidpublisher'],
+        };
+      } else if (keyPath) {
+        const resolvedKeyPath = path.isAbsolute(keyPath)
+          ? keyPath
+          : path.resolve(process.cwd(), keyPath);
+        authConfig = {
+          keyFile: resolvedKeyPath,
+          scopes: ['https://www.googleapis.com/auth/androidpublisher'],
+        };
+      } else {
+        return { isValid: false, purchaseState: 1, error: 'No Google Play service account credentials configured.' };
+      }
+
+      const auth = new google.auth.GoogleAuth(authConfig);
+      const play = google.androidpublisher({ version: 'v3', auth });
+
+      // purchases.products.get is for one-time consumable/non-consumable items
+      const res = await play.purchases.products.get({
+        packageName,
+        productId,
+        token: purchaseToken,
+      });
+
+      const purchase = res.data;
+      // purchaseState: 0 = Purchased, 1 = Cancelled, 2 = Pending
+      const isValid = purchase.purchaseState === 0;
+
+      return { isValid, purchaseState: purchase.purchaseState ?? 1 };
+    } catch (err: any) {
+      console.error('Google Play one-time product verification error:', err);
+      return {
+        isValid: false,
+        purchaseState: 1,
+        error: err.message || 'Google Play validation exception',
+      };
+    }
+  },
 };
