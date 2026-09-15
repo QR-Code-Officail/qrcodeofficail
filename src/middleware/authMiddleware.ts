@@ -55,3 +55,24 @@ export const adminMiddleware = (
     res.status(403).json({ error: 'Forbidden. Admin privileges required.' });
   }
 };
+
+export const optionalAuthMiddleware = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
+      const user = await User.findById(decoded.userId);
+      if (user) {
+        req.user = user;
+      }
+    }
+  } catch {
+    // Ignore invalid/expired tokens for optional auth and proceed as guest
+  }
+  next();
+};

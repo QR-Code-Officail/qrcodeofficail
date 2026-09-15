@@ -6,6 +6,7 @@ import authRoutes from './routes/authRoutes';
 import qrRoutes from './routes/qrRoutes';
 import subscriptionRoutes from './routes/subscriptionRoutes';
 import analyticsRoutes from './routes/analyticsRoutes';
+import scanHistoryRoutes from './routes/scanHistoryRoutes';
 import { redirectDynamicQR } from './controllers/analyticsController';
 
 dotenv.config();
@@ -685,6 +686,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/qr', qrRoutes);
 app.use('/api/subscription', subscriptionRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/scan-history', scanHistoryRoutes);
 
 // Global Error Handling Middleware
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
